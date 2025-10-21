@@ -335,9 +335,17 @@ export class Game extends Scene {
     restart() {
         this.life = 5;
         this.lifeObjects = [];
+
+        this.score = 0;
+        this.scoreLife = SCORE_LIFE;
+
+        this.fallspeedMultiply = 1;
+
         this.texts = [];
+
         this.scene.restart();
         this.game.loop.wake();
+
         this.sound.stopAll();
         this.sound.play("bg1", { volume: 0.2, loop: true });
     }
