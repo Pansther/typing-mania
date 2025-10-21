@@ -30,7 +30,7 @@ export class Game extends Scene {
         this.screenWidth = Number(this.sys.game.config.width);
         this.screenHeight = Number(this.sys.game.config.height);
 
-        this.addText("helloworld");
+        // this.addText("helloworld");
 
         this.setupLife();
         this.setupKeyboard();
@@ -242,7 +242,7 @@ export class Game extends Scene {
         );
 
         gameover.x -= gameover.width / 2;
-        gameover.y -= gameover.height / 2 - 50;
+        gameover.y -= gameover.height / 2;
 
         const score = this.add.text(
             this.screenWidth / 2,
@@ -254,7 +254,7 @@ export class Game extends Scene {
         );
 
         score.x -= score.width / 2;
-        score.y -= score.height / 2 + 80;
+        score.y -= score.height / 2 + 120;
 
         const highscore = localStorage.getItem("highscore") || 0;
 
@@ -262,8 +262,34 @@ export class Game extends Scene {
             localStorage.setItem("highscore", this.score + "");
         }
 
+        const restart = this.add.text(
+            this.screenWidth / 2,
+            this.screenHeight / 2,
+            "Restart",
+            {
+                fontSize: 32,
+                padding: { x: 16, y: 4 },
+                backgroundColor: "deepskyblue",
+            },
+        );
+
+        restart.setInteractive({ cursor: "pointer" });
+        restart.x -= restart.width / 2;
+        restart.y -= restart.height / 2 - 120;
+        restart.on("pointerdown", () => {
+            this.restart();
+        });
+
         setTimeout(() => {
             this.game.loop.sleep();
         }, 20);
+    }
+
+    restart() {
+        this.life = 5;
+        this.lifeObjects = [];
+        this.texts = [];
+        this.scene.restart();
+        this.game.loop.wake();
     }
 }

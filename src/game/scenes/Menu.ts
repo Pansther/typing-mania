@@ -35,6 +35,8 @@ export class Menu extends Scene {
             "Start",
             {
                 fontSize: 64,
+                padding: { x: 16, y: 4 },
+                backgroundColor: "deepskyblue",
             },
         );
 
@@ -53,7 +55,7 @@ export class Menu extends Scene {
             this.screenHeight / 2 + 250,
             `Highscore : ${score}`,
             {
-                fontSize: 64,
+                fontSize: 48,
             },
         );
 
