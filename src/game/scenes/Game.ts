@@ -9,6 +9,7 @@ const MAX_LIFE = 7;
 export class Game extends Scene {
     life = 5;
     lifeObjects: GameObjects.Image[] = [];
+    isDamageCooldown = false;
 
     score = 0;
     scoreLife = SCORE_LIFE;
@@ -115,14 +116,31 @@ export class Game extends Scene {
     }
 
     missType() {
+        if (this.isDamageCooldown) return;
+
         this.life -= 1;
+        this.isDamageCooldown = true;
         this.setupLife();
+
+        setTimeout(() => {
+            this.isDamageCooldown = false;
+        }, 1000);
 
         this.sound.play("hurt");
 
         setTimeout(() => {
             if (this.life <= 0) this.gameover();
         }, 200);
+
+        this.lifeObjects.forEach((object) => {
+            this.tweens.add({
+                targets: object,
+                loop: 2,
+                duration: 150,
+                alpha: 0.5,
+                yoyo: true,
+            });
+        });
     }
 
     setupScore() {
