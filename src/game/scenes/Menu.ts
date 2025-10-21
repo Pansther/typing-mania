@@ -11,11 +11,15 @@ export class Menu extends Scene {
 
     preload() {
         this.load.setPath("assets");
+
+        this.load.audio("intro", "/audio/intro.mp3");
     }
 
     create() {
         this.screenWidth = Number(this.sys.game.config.width);
         this.screenHeight = Number(this.sys.game.config.height);
+
+        this.sound.play("intro", { loop: true, volume: 0.2 });
 
         const gameLabel = this.add.text(
             this.screenWidth / 2,
@@ -46,6 +50,7 @@ export class Menu extends Scene {
         start.setInteractive({ cursor: "pointer" });
         start.on("pointerdown", () => {
             this.scene.start("Game");
+            this.sound.stopByKey("intro");
         });
 
         const score = localStorage.getItem("highscore") || 0;

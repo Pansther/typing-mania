@@ -3,11 +3,15 @@ import { EventBus } from "../EventBus";
 import { generate } from "random-words";
 import BBCodeText from "phaser3-rex-plugins/plugins/bbcodetext.js";
 
+const SCORE_LIFE = 500;
+const MAX_LIFE = 7;
+
 export class Game extends Scene {
     life = 5;
     lifeObjects: GameObjects.Image[] = [];
 
     score = 0;
+    scoreLife = SCORE_LIFE;
     scoreObject: GameObjects.Text;
 
     screenWidth: number;
@@ -24,13 +28,22 @@ export class Game extends Scene {
         this.load.setPath("assets");
 
         this.load.image("life", "/star.png");
+
+        this.load.audio("coin", "/audio/coin.mp3");
+        this.load.audio("hurt", "/audio/hurt.mp3");
+        this.load.audio("life", "/audio/life.mp3");
+        this.load.audio("bg1", "/audio/bg1.mp3");
     }
 
     create() {
         this.screenWidth = Number(this.sys.game.config.width);
         this.screenHeight = Number(this.sys.game.config.height);
 
+        this.sound.play("bg1", { loop: true, volume: 0.2 });
+
         // this.addText("helloworld");
+
+        this.add.rectangle(0, 0, this.screenWidth * 2, 200, 0x000000, 0.8);
 
         this.setupLife();
         this.setupKeyboard();
@@ -65,22 +78,47 @@ export class Game extends Scene {
         this.lifeObjects.forEach((life) => life.destroy());
         this.lifeObjects = [];
 
-        const ORIGIN = [50, 70];
+        const ORIGIN = [40, 60];
 
         // console.log("this.life", this.life);
 
         for (let i = 0; i < this.life; i++) {
-            const life = this.add.image(ORIGIN[0], ORIGIN[1], "life");
+            const life = this.add
+                .image(ORIGIN[0], ORIGIN[1], "life")
+                .setDisplaySize(50, 50);
 
-            life.x += i * life.width + i * 20;
+            life.x += i * life.width - i * 5;
 
             this.lifeObjects.push(life);
         }
     }
 
+    getLife(object: GameObjects.Text) {
+        if (this.life >= MAX_LIFE) return;
+
+        this.life++;
+        this.setupLife();
+        this.sound.play("life");
+        this.scoreLife += SCORE_LIFE;
+
+        const life = this.add.text(object.x, object.y, "+1 HP", {
+            fontSize: 32,
+            color: "limegreen",
+        });
+
+        this.tweens.add({
+            targets: life,
+            duration: 1000,
+            alpha: 0,
+            y: object.y - 20,
+        });
+    }
+
     missType() {
         this.life -= 1;
         this.setupLife();
+
+        this.sound.play("hurt");
 
         setTimeout(() => {
             if (this.life <= 0) this.gameover();
@@ -93,7 +131,7 @@ export class Game extends Scene {
             70,
             this.score + "",
             {
-                fontSize: 64,
+                fontSize: 48,
             },
         );
 
@@ -108,7 +146,7 @@ export class Game extends Scene {
     }
 
     addText(text: string) {
-        const object = new BBCodeText(this, 0, 0, text, {
+        const object = new BBCodeText(this, 0, 110, text, {
             fontSize: 32,
         });
 
@@ -159,7 +197,7 @@ export class Game extends Scene {
             this.texts[i].object.text = `[color=red]${start}[/color]${end}`;
 
             if (active === label.length) {
-                this.getScore(label);
+                this.getScore(label, this.texts[i].object);
                 this.destroyText(i);
             }
 
@@ -196,12 +234,18 @@ export class Game extends Scene {
         this.texts.splice(index, 1);
     }
 
-    getScore(text: string) {
+    getScore(text: string, object: GameObjects.Text) {
         this.score += Math.floor(
             text.length * (1 + this.fallspeedMultiply * 2),
         );
         this.scoreObject.text = this.score + "";
         this.scoreObject.x = this.screenWidth - this.scoreObject.width - 30;
+
+        this.sound.play("coin");
+
+        if (this.score >= this.scoreLife) {
+            this.getLife(object);
+        }
     }
 
     setupKeyboard() {
@@ -223,13 +267,16 @@ export class Game extends Scene {
     }
 
     gameover() {
+        this.texts = [];
+        this.sound.stopAll();
+
         this.add.rectangle(
             0,
             0,
             this.screenWidth * 2,
             this.screenHeight * 2,
             0x000000,
-            0.2,
+            0.4,
         );
 
         const gameover = this.add.text(
@@ -291,5 +338,7 @@ export class Game extends Scene {
         this.texts = [];
         this.scene.restart();
         this.game.loop.wake();
+        this.sound.stopAll();
+        this.sound.play("bg1", { volume: 0.2, loop: true });
     }
 }
