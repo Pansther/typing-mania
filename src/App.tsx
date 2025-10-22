@@ -1,6 +1,9 @@
 import { useRef } from "react";
 import { IRefPhaserGame, PhaserGame } from "./PhaserGame";
 
+import "./main.css";
+import Setting from "./_components/Setting";
+
 function App() {
     //  References to the PhaserGame component (game and scene are exposed)
     const phaserRef = useRef<IRefPhaserGame | null>(null);
@@ -23,11 +26,7 @@ function App() {
     return (
         <div id="app">
             <PhaserGame ref={phaserRef} />
-            {/* <div> */}
-            {/*     <div> */}
-            {/*         <button className="button" onClick={addSprite}>Add New Sprite</button> */}
-            {/*     </div> */}
-            {/* </div> */}
+            <Setting />
         </div>
     );
 }

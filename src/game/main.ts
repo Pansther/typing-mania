@@ -8,6 +8,10 @@ const config: Types.Core.GameConfig = {
     type: AUTO,
     width: 1024,
     height: 768,
+    scale: {
+        mode: Phaser.Scale.EXPAND,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
     parent: "game-container",
     backgroundColor: "#028af8",
     scene: [Menu, MainGame],

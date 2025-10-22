@@ -2,11 +2,14 @@ import { GameObjects, Scene } from "phaser";
 import { EventBus } from "../EventBus";
 import { generate } from "random-words";
 import BBCodeText from "phaser3-rex-plugins/plugins/bbcodetext.js";
+import { DIFFICULTY } from "../config";
 
 const SCORE_LIFE = 500;
 const MAX_LIFE = 7;
 
 export class Game extends Scene {
+    key = "Game";
+
     life = 5;
     lifeObjects: GameObjects.Image[] = [];
     isDamageCooldown = false;
@@ -20,6 +23,8 @@ export class Game extends Scene {
     texts: { label: string; object: GameObjects.Text; active: number }[] = [];
 
     fallspeedMultiply = 1;
+
+    difficulty = "normal";
 
     constructor() {
         super("Game");
@@ -37,22 +42,31 @@ export class Game extends Scene {
     }
 
     create() {
-        this.screenWidth = Number(this.sys.game.config.width);
-        this.screenHeight = Number(this.sys.game.config.height);
+        this.screenWidth = Number(this.sys.game.canvas.width);
+        this.screenHeight = Number(this.sys.game.canvas.height);
 
         this.sound.play("bg1", { loop: true, volume: 0.2 });
 
         // this.addText("helloworld");
 
-        this.add.rectangle(0, 0, this.screenWidth * 2, 200, 0x000000, 0.8);
+        this.add.rectangle(0, 0, this.screenWidth * 2, 150, 0x000000, 0.8);
 
         this.setupLife();
         this.setupKeyboard();
         this.setupScore();
 
+        const difficulty = localStorage.getItem("difficulty");
+
+        this.difficulty = difficulty || "normal";
+        this.scoreLife = DIFFICULTY[this.difficulty].lifeUpScore;
+
+        this.generateWord();
+
+        const wpm = DIFFICULTY[this.difficulty].wpm;
+
         this.time.addEvent({
             loop: true,
-            delay: 1_500,
+            delay: 60_000 / wpm,
             callback: () => this.generateWord(),
         });
 
@@ -79,7 +93,7 @@ export class Game extends Scene {
         this.lifeObjects.forEach((life) => life.destroy());
         this.lifeObjects = [];
 
-        const ORIGIN = [40, 60];
+        const ORIGIN = [40, 35];
 
         // console.log("this.life", this.life);
 
@@ -100,7 +114,7 @@ export class Game extends Scene {
         this.life++;
         this.setupLife();
         this.sound.play("life");
-        this.scoreLife += SCORE_LIFE;
+        this.scoreLife += DIFFICULTY[this.difficulty].lifeUpScore;
 
         const life = this.add.text(object.x, object.y, "+1 HP", {
             fontSize: 32,
@@ -146,26 +160,27 @@ export class Game extends Scene {
     setupScore() {
         this.scoreObject = this.add.text(
             this.screenWidth,
-            70,
-            this.score + "",
+            30,
+            this.score.toLocaleString(),
             {
                 fontSize: 48,
             },
         );
 
         this.scoreObject.y -= this.scoreObject.y / 2;
-        this.scoreObject.x -= this.scoreObject.width + 30;
+        this.scoreObject.x -= this.scoreObject.width + 20;
     }
 
     generateWord() {
-        const text = generate() as string;
+        const maxLen = DIFFICULTY[this.difficulty].maxWordLen;
+        const text = generate({ maxLength: maxLen }) as string;
 
         this.addText(text);
     }
 
     addText(text: string) {
         const object = new BBCodeText(this, 0, 110, text, {
-            fontSize: 32,
+            fontSize: 36,
         });
 
         this.add.existing(object);
@@ -253,11 +268,13 @@ export class Game extends Scene {
     }
 
     getScore(text: string, object: GameObjects.Text) {
+        const bonus = DIFFICULTY[this.difficulty].scoreBonus;
+
         this.score += Math.floor(
-            text.length * (1 + this.fallspeedMultiply * 2),
+            text.length * (1 + this.fallspeedMultiply * 2) * bonus,
         );
-        this.scoreObject.text = this.score + "";
-        this.scoreObject.x = this.screenWidth - this.scoreObject.width - 30;
+        this.scoreObject.text = this.score.toLocaleString();
+        this.scoreObject.x = this.screenWidth - this.scoreObject.width - 20;
 
         this.sound.play("coin");
 

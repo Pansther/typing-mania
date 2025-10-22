@@ -16,8 +16,8 @@ export class Menu extends Scene {
     }
 
     create() {
-        this.screenWidth = Number(this.sys.game.config.width);
-        this.screenHeight = Number(this.sys.game.config.height);
+        this.screenWidth = Number(this.sys.game.canvas.width);
+        this.screenHeight = Number(this.sys.game.canvas.height);
 
         this.sound.play("intro", { loop: true, volume: 0.2 });
 
@@ -58,7 +58,7 @@ export class Menu extends Scene {
         const highscore = this.add.text(
             this.screenWidth / 2,
             this.screenHeight / 2 + 250,
-            `Highscore : ${score}`,
+            `Highscore : ${Number(score).toLocaleString()}`,
             {
                 fontSize: 48,
             },
