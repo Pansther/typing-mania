@@ -1,7 +1,8 @@
-import { GameObjects, Scene } from "phaser";
-import { EventBus } from "../EventBus";
 import { generate } from "random-words";
+import { GameObjects, Scene } from "phaser";
 import BBCodeText from "phaser3-rex-plugins/plugins/bbcodetext.js";
+
+import { EventBus } from "../EventBus";
 import { DIFFICULTY } from "../config";
 
 const SCORE_LIFE = 500;
@@ -25,6 +26,9 @@ export class Game extends Scene {
     fallspeedMultiply = 1;
 
     difficulty = "normal";
+
+    combo = 0;
+    comboObject: GameObjects.Text;
 
     constructor() {
         super("Game");
@@ -54,6 +58,7 @@ export class Game extends Scene {
         this.setupLife();
         this.setupKeyboard();
         this.setupScore();
+        this.setupCombo();
 
         const difficulty = localStorage.getItem("difficulty");
 
@@ -155,6 +160,8 @@ export class Game extends Scene {
                 yoyo: true,
             });
         });
+
+        this.missCombo();
     }
 
     setupScore() {
@@ -227,6 +234,7 @@ export class Game extends Scene {
 
             if (!start) continue;
 
+            this.getCombo();
             this.texts[i].object.text = `[color=red]${start}[/color]${end}`;
 
             if (active === label.length) {
@@ -243,6 +251,8 @@ export class Game extends Scene {
     }
 
     deleteOutboundWord(index: number) {
+        if (!this.texts?.length) return;
+
         const camera = this.cameras.main;
 
         const object = this.texts?.[index]?.object;
@@ -269,10 +279,11 @@ export class Game extends Scene {
 
     getScore(text: string, object: GameObjects.Text) {
         const bonus = DIFFICULTY[this.difficulty].scoreBonus;
+        const comboBonus = Math.floor(this.combo / 5);
 
-        this.score += Math.floor(
-            text.length * (1 + this.fallspeedMultiply * 2) * bonus,
-        );
+        this.score +=
+            Math.floor(text.length * (1 + this.fallspeedMultiply * 2) * bonus) +
+            comboBonus;
         this.scoreObject.text = this.score.toLocaleString();
         this.scoreObject.x = this.screenWidth - this.scoreObject.width - 20;
 
@@ -299,6 +310,35 @@ export class Game extends Scene {
                 else this.game.loop.wake();
             }
         });
+    }
+
+    updateCombo() {
+        this.comboObject.text = "x" + this.combo.toLocaleString();
+        this.comboObject.x = this.screenWidth / 2 - this.comboObject.width / 2;
+    }
+
+    setupCombo() {
+        this.comboObject = this.add.text(
+            this.screenWidth / 2,
+            30,
+            this.score.toLocaleString(),
+            {
+                fontSize: 48,
+            },
+        );
+
+        this.updateCombo();
+        this.comboObject.y -= this.comboObject.y / 2;
+    }
+
+    missCombo() {
+        this.combo = 0;
+        this.updateCombo();
+    }
+
+    getCombo() {
+        this.combo += 1;
+        this.updateCombo();
     }
 
     gameover() {
@@ -368,8 +408,9 @@ export class Game extends Scene {
     }
 
     restart() {
-        this.life = 5;
+        this.life = 5 + 1;
         this.lifeObjects = [];
+        this.isDamageCooldown = false;
 
         this.score = 0;
         this.scoreLife = SCORE_LIFE;

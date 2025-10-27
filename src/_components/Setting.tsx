@@ -1,5 +1,5 @@
 import cx from "clsx";
-import { Settings } from "lucide-react";
+import { Music, Music2, Settings } from "lucide-react";
 import { DIFFICULTY } from "../game/config";
 import { Activity, useEffect, useState } from "react";
 import { EventBus } from "../game/EventBus";
@@ -75,6 +75,38 @@ const Difficulty = () => {
     );
 };
 
+const Sound = () => {
+    return (
+        <div className="grid grid-cols-12">
+            <label className="col-span-3 flex items-center">Sound:</label>
+            <ul className="col-span-9 flex flex-wrap gap-2 items-center">
+                <li>
+                    <button
+                        className={cx(
+                            { "bg-blue-400 text-white": true },
+                            "flex gap-1 items-center px-2 py-1 hover:cursor-pointer rounded-md",
+                        )}
+                    >
+                        <Music size={16} />
+                        Music
+                    </button>
+                </li>
+                <li>
+                    <button
+                        className={cx(
+                            { "bg-blue-400 text-white": true },
+                            "flex gap-1 items-center px-2 py-1 hover:cursor-pointer rounded-md",
+                        )}
+                    >
+                        <Music2 size={14} />
+                        SFX
+                    </button>
+                </li>
+            </ul>
+        </div>
+    );
+};
+
 const Setting = () => {
     const [isShow, setShow] = useState(true);
     const [isOpen, setOpen] = useState(false);
@@ -106,6 +138,7 @@ const Setting = () => {
             <Activity mode={isOpen ? "visible" : "hidden"}>
                 <div className="absolute w-[450px] translate-[-100%] top-[-4px] left-[100%] bg-amber-50 rounded-md p-4 py-3">
                     <Difficulty />
+                    {/* <Sound /> */}
                 </div>
             </Activity>
         </div>
